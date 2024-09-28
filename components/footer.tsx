@@ -25,14 +25,14 @@ export function Footer() {
       <div className="container flex flex-col items-center justify-between gap-4 py-6 md:h-24 md:flex-row md:py-0">
         <div className="flex items-center gap-2">
           <Image
-            src={currentTheme === "dark" ? "/uenp-dark.png" : "/uenp-light.png"}
+            src={currentTheme === "dark" ? "/uenp-darkmode.png" : "/uenp-lightmode.png"}
             alt="Logo"
-            width={96}
-            height={96}
-            className="h-14 w-14"
+            width={300}
+            height={84}
+            className="h-8 w-28"
             layout="fixed"
           />
-          <span className="text-sm text-muted-foreground font-semibold">UENP</span>
+          {/*<span className="text-sm text-muted-foreground font-semibold">UENP</span>*/}
         </div>
         <p className="text-sm text-muted-foreground">
           © {new Date().getFullYear()}. Todos os direitos reservados.
@@ -45,7 +45,7 @@ export function Footer() {
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-4"
           >
-            shadcn
+            shadcn/ui
           </a>{" "}
           por malu moreira.
         </p>

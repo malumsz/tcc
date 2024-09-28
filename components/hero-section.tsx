@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Shield, Github, Book, ArrowRight, Layers, Scale, Puzzle } from "lucide-react"
+import { Shield, Github, Book, ArrowRight, Layers, Scale, Sticker } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 
@@ -21,10 +21,10 @@ export function HeroSectionComponent() {
       link: "https://www.gov.br/esporte/pt-br/acesso-a-informacao/lgpd"
     },
     { 
-      icon: Puzzle, 
-      title: "Futuras Extensões", 
-      description: "Espaço para expansão e novas funcionalidades.",
-      link: ""
+      icon: Sticker, 
+      title: "Feedback", 
+      description: "Espaço para coletar e implementar sugestões de melhorias da comunidade.",
+      link: "https://forms.gle/bPuCZdbjnKW9dTLS9"
     }
   ]
 
@@ -66,7 +66,7 @@ export function HeroSectionComponent() {
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
                 <Button size="lg" variant="outline" className="hover:bg-secondary/10">
-                  Metodologia
+                  Visão Geral
                 </Button>
               </motion.div>
 
