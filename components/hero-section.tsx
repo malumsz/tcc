@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Shield, Github, Book, ArrowRight, Layers, Scale, Sticker } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { VisaoGeral } from "@/components/visao-geral"
 
 export function HeroSectionComponent() {
   const tccAspects = [
@@ -65,9 +66,7 @@ export function HeroSectionComponent() {
                   Inspeção
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
-                <Button size="lg" variant="outline" className="hover:bg-secondary/10">
-                  Visão Geral
-                </Button>
+                <VisaoGeral />
               </motion.div>
 
               <motion.div 
