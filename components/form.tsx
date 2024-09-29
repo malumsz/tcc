@@ -75,11 +75,11 @@ const questions: Record<QuestionSection, string[]> = {
 }
 
 const sectionDescriptions: Record<QuestionSection, string> = {
-  'Pessoas/Atores': 'Avalie as informações sobre os atores envolvidos no uso dos dados pessoais.',
-  'Propósito de uso': 'Analise os objetivos e a legalidade do uso dos dados pessoais.',
-  'Dados pessoais': 'Verifique quais dados são utilizados e como são adquiridos.',
-  'Compartilhamento': 'Avalie as informações sobre o compartilhamento de dados com terceiros.',
-  'Agenciamento': 'Analise as informações sobre os direitos do titular dos dados.',
+  'Pessoas/Atores': 'Pessoas (atores) envolvidas no uso dos dados pessoais. Verifique se as informações sobre quem realiza as tarefas são apresentadas assim como informações sobre como entrar em contato com o ator.',
+  'Propósito de uso': 'Verifique informações sobre como os dados pessoais são utilizados, ou seja, os objetivos de uso dos dados pessoais.',
+  'Dados pessoais': 'Verifique informações sobre quais dados são utilizados e como eles são adquiridos.',
+  'Compartilhamento': 'Verifique as informações sobre o compartilhamento de dados pessoais com outros controladores.',
+  'Agenciamento': 'Verifique as informações sobre como o indivíduo pode/deve agir quando se sentir enganado ou lesado.',
 }
 
 const sectionIcons: Record<QuestionSection, LucideIcon> = {
