@@ -39,8 +39,8 @@ export function SiteHeader() {
                   variant: "ghost",
                 })}
               >
-                <Icons.twitter className="size-5 fill-current" />
-                <span className="sr-only">Twitter</span>
+                <Icons.documentation className="size-5 " />
+                <span className="sr-only">Documentation</span>
               </div>
             </Link>
             <ThemeToggle />

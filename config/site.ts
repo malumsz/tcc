@@ -1,13 +1,17 @@
 export type SiteConfig = typeof siteConfig
 
 export const siteConfig = {
-  name: "Next.js",
+  name: "Privacy Tool",
   description:
-    "Beautifully designed components built with Radix UI and Tailwind CSS.",
+    "Ferramenta para Inspeção de Transparência de Dados Pessoais",
   mainNav: [
     {
-      title: "Home",
+      title: "Início",
       href: "/",
+    },
+    {
+      title: "Inspeção",
+      href: "/form-page",
     },
   ],
   links: {
