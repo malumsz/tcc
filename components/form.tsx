@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import { Users, Target, Database, Share2, ShieldCheck, LucideIcon } from 'lucide-react'
+import { MousePointerSquare, Users, Database, Share2, ShieldCheck, LucideIcon, CheckCircle2 } from 'lucide-react'
 
 type QuestionSection = 'Pessoas/Atores' | 'Propósito de uso' | 'Dados pessoais' | 'Compartilhamento' | 'Agenciamento';
 
@@ -84,7 +84,7 @@ const sectionDescriptions: Record<QuestionSection, string> = {
 
 const sectionIcons: Record<QuestionSection, LucideIcon> = {
   'Pessoas/Atores': Users,
-  'Propósito de uso': Target,
+  'Propósito de uso': MousePointerSquare,
   'Dados pessoais': Database,
   'Compartilhamento': Share2,
   'Agenciamento': ShieldCheck,
@@ -146,6 +146,10 @@ export default function Form() {
     setTotalProgress((totalAnswered / totalQuestions) * 100)
   }, [formData])
 
+  const isSectionComplete = (section: QuestionSection) => {
+    return progress[section] === 100;
+  }
+
   return (
     <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -179,8 +183,11 @@ export default function Form() {
                           )}
                           onClick={() => setActiveSection(section)}
                         >
-                          <Icon className="mr-2 h-4 w-4" />
-                          {section}
+                          <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <span className="truncate flex-grow">{section}</span>
+                          {isSectionComplete(section) && (
+                            <CheckCircle2 className="ml-2 h-4 w-4 text-green-500 flex-shrink-0" />
+                          )}
                         </Button>
                       )
                     })}
@@ -216,7 +223,10 @@ export default function Form() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: qIndex * 0.1 }}
                           >
-                            <Label className="text-base font-medium mb-2 block">{question}</Label>
+                            <Label className="text-base font-medium mb-2 block">
+                              <span className="font-bold mr-2">{qIndex + 1}.</span>
+                              {question}
+                            </Label>
                             <Separator className="my-4" />
                             <RadioGroup
                               value={formData[activeSection]?.[qIndex] || ""}
@@ -233,7 +243,7 @@ export default function Form() {
                             {formData[activeSection]?.[qIndex] === 'Outro' && (
                               <Input
                                 type="text"
-                                placeholder="Especifique"
+                                placeholder="Descreva"
                                 className="mt-2"
                                 value={otherText[activeSection]?.[qIndex] || ''}
                                 onChange={(e) => handleOtherTextChange(activeSection, qIndex, e.target.value)}
