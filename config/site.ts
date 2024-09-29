@@ -11,7 +11,7 @@ export const siteConfig = {
     },
     {
       title: "Inspeção",
-      href: "/form",
+      href: "/form-page",
     },
   ],
   links: {

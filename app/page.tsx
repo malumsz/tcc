@@ -3,7 +3,6 @@ import Link from "next/link"
 
 import { siteConfig } from "@/config/site"
 import { buttonVariants } from "@/components/ui/button"
-import { SimplifiedBadgedForm } from "@/components/form"
 import { HeroSectionComponent } from "@/components/hero-section"
 
 

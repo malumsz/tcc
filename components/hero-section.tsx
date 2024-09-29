@@ -62,10 +62,13 @@ export function HeroSectionComponent() {
                 transition={{ delay: 0.4, duration: 0.5 }}
                 className="flex flex-col sm:flex-row gap-4"
               >
-                <Button size="lg" className="group bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Inspeção
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Button>
+                <Link href="/form-page">
+                  <Button size="lg" className="group bg-primary hover:bg-primary/90 text-primary-foreground">
+                    Inspeção
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </Link>
+                
                 <VisaoGeral />
               </motion.div>
 
