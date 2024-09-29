@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { FileText, CheckCircle2, Sun, MousePointer, BarChartBig } from "lucide-react" 
+import { FileText, CheckCircle2, Sun, MousePointer, BarChartBig } from "lucide-react"
 
 export function VisaoGeral() {
   return (
@@ -40,10 +40,10 @@ export function VisaoGeral() {
                 Funcionalidades
               </h3>
               <ul className="space-y-3">
-                {[ 
+                {[
                   { icon: CheckCircle2, text: "Preenchimento do formulário de inspeção em escalas de <u>Suficiente</u>, <u>Insuficiente</u> e <u>Inexistente</u>." },
                   { icon: BarChartBig, text: "Cálculo de um <b>score</b> final com base nas respostas, acompanhado de gráficos visuais." },
-                  { icon: FileText, text: "Exportação das respostas em formato <b>PDF</b> ao final da inspeção." },
+                  { icon: FileText, text: "Exportação do resultado em formato <b>PDF</b> ao final da inspeção." },
                   { icon: Sun, text: "<b>Modo claro</b>/<b>escuro</b> para melhor adaptação visual com base na preferência do usuário." },
                 ].map((item, index) => (
                   <li key={index} className="flex items-start">
