@@ -248,6 +248,9 @@ export default function FormularioInspecao() {
                           const questionNumber = Object.values(questions[activeSection])
                             .flat()
                             .findIndex((q) => q === question) + 1;
+                          const options = category === 'Formato de Apresentação'
+                            ? ['Apropriado', 'Inapropriado', 'Necessita melhorias', 'Outro']
+                            : ['Suficiente', 'Insuficiente', 'Inexistente', 'Outro'];
                           return (
                             <Card key={`${category}-${qIndex}`} className="relative mb-4">
                               <CardContent className="pt-6 pb-4 px-6">
@@ -266,7 +269,7 @@ export default function FormularioInspecao() {
                                     onValueChange={(value) => handleRadioChange(activeSection, `${category}-${qIndex}`, value)}
                                     className="flex flex-col space-y-2 mt-2"
                                   >
-                                    {['Suficiente', 'Insuficiente', 'Inexistente', 'Outro'].map((option) => (
+                                    {options.map((option) => (
                                       <div key={option} className="flex items-center space-x-2">
                                         <RadioGroupItem value={option} id={`${activeSection}-${category}-${qIndex}-${option}`} />
                                         <Label htmlFor={`${activeSection}-${category}-${qIndex}-${option}`}>{option}</Label>
