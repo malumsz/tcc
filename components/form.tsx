@@ -12,8 +12,9 @@ import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import HomeButton from '@/components/home-button'
-import { MousePointerSquare, Users, Database, Share2, ShieldCheck, LucideIcon, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { InfoIcon, MousePointerSquare, Users, Database, Share2, ShieldCheck, LucideIcon, CheckCircle2, ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 
 type QuestionSection = 'Pessoas/Atores' | 'Propósito de uso' | 'Dados pessoais' | 'Compartilhamento' | 'Agenciamento';
 type QuestionCategory = 'Existência e Qualidade da Informação' | 'Formato de Apresentação';
@@ -112,6 +113,82 @@ const sectionIcons: Record<QuestionSection, LucideIcon> = {
   'Compartilhamento': Share2,
   'Agenciamento': ShieldCheck,
 }
+
+type HoverCardInfo = {
+  trigger: string;
+  content: string;
+}
+
+const hoverCardInfo: Record<QuestionSection, Record<string, HoverCardInfo[]>> = {
+  'Pessoas/Atores': {
+    'Existência e Qualidade da Informação': [
+      {
+        trigger: 'agências de proteção de dados',
+        content: 'Órgãos que garantem o cumprimento das leis de privacidade e proteção de dados pessoais, como a ANPD no Brasil e o EDPB na Europa.'
+      }
+    ],
+    'Formato de Apresentação': []
+  },
+  'Propósito de uso': {
+    'Existência e Qualidade da Informação': [
+      {
+        trigger: 'lei/regulamentação',
+        content: 'Leis que autorizam o tratamento de dados pessoais, como a LGPD no Brasil ou o GDPR na Europa.'
+      }
+    ],
+    'Formato de Apresentação': []
+  },
+  'Dados pessoais': {
+    'Existência e Qualidade da Informação': [],
+    'Formato de Apresentação': []
+  },
+  'Compartilhamento': {
+    'Existência e Qualidade da Informação': [
+      {
+        trigger: 'base legal',
+        content: 'Justificativa legal que permite o compartilhamento de dados, como consentimento ou obrigações legais, conforme a LGPD ou GDPR.'
+      }
+    ],
+    'Formato de Apresentação': []
+  },
+  'Agenciamento': {
+    'Existência e Qualidade da Informação': [],
+    'Formato de Apresentação': []
+  }
+}
+
+const TextWithHoverCard: React.FC<{ text: string; hoverCards: HoverCardInfo[] }> = ({ text, hoverCards }) => {
+  const parts = text.split(new RegExp(`(${hoverCards.map(hc => hc.trigger).join('|')})`, 'gi'));
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        const hoverCard = hoverCards.find(hc => hc.trigger.toLowerCase() === part.toLowerCase());
+        if (hoverCard) {
+          return (
+            <HoverCard key={index}>
+              <HoverCardTrigger asChild>
+                <span className="cursor-pointer font-bold hover:underline transition-all duration-200">
+                  {part}
+                </span>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-80">
+                <div className="flex justify-between space-x-4">
+                <InfoIcon className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+                  <div className="space-y-1 flex-grow">
+                    <h4 className="text-sm font-semibold">{hoverCard.trigger}</h4>
+                    <p className="text-sm text-muted-foreground">{hoverCard.content}</p>
+                  </div>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </>
+  );
+};
 
 export default function FormularioInspecao() {
   const router = useRouter()
@@ -261,7 +338,10 @@ export default function FormularioInspecao() {
                                 >
                                   <Label className="text-base font-medium mb-2 block">
                                     <span className="font-bold mr-2">{questionNumber}.</span>
-                                    {question}
+                                    <TextWithHoverCard
+                                      text={question}
+                                      hoverCards={hoverCardInfo[activeSection]?.[category] || []}
+                                    />
                                   </Label>
                                   <Separator className="my-4" />
                                   <RadioGroup
