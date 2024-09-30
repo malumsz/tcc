@@ -17,7 +17,7 @@ export function VisaoGeral() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="lg" variant="outline" className="hover:bg-secondary/10">
+        <Button size="lg" variant="outline" className="group hover:bg-secondary/10">
           Visão Geral
         </Button>
       </DialogTrigger>

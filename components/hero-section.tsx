@@ -9,21 +9,21 @@ import { VisaoGeral } from "@/components/visao-geral"
 
 export function HeroSectionComponent() {
   const tccAspects = [
-    { 
-      icon: Layers, 
-      title: "TR-Model", 
+    {
+      icon: Layers,
+      title: "TR-Model",
       description: "Uma aplicação de perfil de metadados para transparência de dados pessoais.",
       link: "https://each.usp.br/cond_met_pand/trmodel/"
     },
-    { 
-      icon: Scale, 
-      title: "LGPD", 
+    {
+      icon: Scale,
+      title: "LGPD",
       description: "Aplicação dos princípios da Lei Geral de Proteção de Dados (LGPD).",
       link: "https://www.gov.br/esporte/pt-br/acesso-a-informacao/lgpd"
     },
-    { 
-      icon: Sticker, 
-      title: "Feedback", 
+    {
+      icon: Sticker,
+      title: "Feedback",
       description: "Espaço para coletar e implementar sugestões de melhorias da comunidade.",
       link: "https://forms.gle/bPuCZdbjnKW9dTLS9"
     }
@@ -35,7 +35,7 @@ export function HeroSectionComponent() {
         <CardContent className="p-6 sm:p-10">
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex flex-col space-y-8 lg:w-1/2 justify-center">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -47,7 +47,7 @@ export function HeroSectionComponent() {
                 <h1 className="text-xl sm:text-3xl font-bold text-primary">Privacy Tool</h1>
               </motion.div>
 
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
@@ -56,23 +56,23 @@ export function HeroSectionComponent() {
                 Uma ferramenta para Inspeção de Transparência de Dados Pessoais, construída com base na Lei Geral de Proteção de Dados (LGPD) e no TR-Model.
               </motion.p>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
                 className="flex flex-col sm:flex-row gap-4"
               >
                 <Link href="/form-page">
-                  <Button size="lg" className="group bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Button size="lg" className="w-full group bg-primary hover:bg-primary/90 text-primary-foreground">
                     Inspeção
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                
+
                 <VisaoGeral />
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}

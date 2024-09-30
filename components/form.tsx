@@ -11,7 +11,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import { MousePointerSquare, Users, Database, Share2, ShieldCheck, LucideIcon, CheckCircle2 } from 'lucide-react'
+import { MousePointerSquare, Users, Database, Share2, ShieldCheck, LucideIcon, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import HomeButton from '@/components/home-button'
 
 type QuestionSection = 'Pessoas/Atores' | 'Propósito de uso' | 'Dados pessoais' | 'Compartilhamento' | 'Agenciamento';
 
@@ -91,6 +93,8 @@ const sectionIcons: Record<QuestionSection, LucideIcon> = {
 }
 
 export default function Form() {
+  const router = useRouter()
+
   const initialFormData: Record<QuestionSection, Record<number, string>> = Object.keys(questions).reduce((acc, section) => {
     acc[section as QuestionSection] = {};
     return acc;
@@ -157,6 +161,7 @@ export default function Form() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
+        <HomeButton />
         <Card className="w-full">
           <CardHeader className="pb-0">
             <CardTitle className="text-xl sm:text-3xl font-bold text-primary">Formulário de Inspeção</CardTitle>
