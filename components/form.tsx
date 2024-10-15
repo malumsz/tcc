@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from "next/link"
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -10,9 +11,10 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import HomeButton from '@/components/home-button'
-import { InfoIcon, MousePointerSquare, Users, Database, Share2, ShieldCheck, LucideIcon, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { InfoIcon, MousePointerSquare, Users, Database, Share2, ShieldCheck, LucideIcon, CheckCircle2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 
@@ -201,6 +203,7 @@ export default function FormularioInspecao() {
   const [formData, setFormData] = useState<Record<QuestionSection, Record<string, string>>>(initialFormData);
   const [otherText, setOtherText] = useState<Record<QuestionSection, Record<string, string>>>(initialFormData);
   const [activeSection, setActiveSection] = useState<QuestionSection>('Pessoas/Atores');
+  const [activeCategory, setActiveCategory] = useState<QuestionCategory>('Existência e Qualidade da Informação');
   const [progress, setProgress] = useState<Record<QuestionSection, number>>({} as Record<QuestionSection, number>);
   const [totalProgress, setTotalProgress] = useState<number>(0);
 
@@ -226,9 +229,39 @@ export default function FormularioInspecao() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form Data:', formData)
-    console.log('Other Text:', otherText)
-    // Here you would typically send the data to a server
+    
+    // Prepare the data for JSON export
+    const exportData: Record<QuestionSection, Record<QuestionCategory, Record<string, string>>> = {} as Record<QuestionSection, Record<QuestionCategory, Record<string, string>>>;
+
+    (Object.keys(questions) as QuestionSection[]).forEach(section => {
+      exportData[section] = {} as Record<QuestionCategory, Record<string, string>>;
+      
+      (Object.keys(questions[section]) as QuestionCategory[]).forEach(category => {
+        exportData[section][category] = {};
+        questions[section][category].forEach((question, index) => {
+          const key = `${category}-${index}`;
+          const answer = formData[section][key] || '';
+          const otherAnswer = formData[section][key] === 'Outro' ? otherText[section][key] || '' : '';
+          exportData[section][category][question] = answer + (otherAnswer ? ` - ${otherAnswer}` : '');
+        });
+      });
+    });
+
+    // Convert the data to a JSON string
+    const jsonString = JSON.stringify(exportData, null, 2);
+
+    // Create a Blob with the JSON data
+    const blob = new Blob([jsonString], { type: 'application/json' });
+
+    // Create a download link and trigger the download
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'formulario_inspecao_respostas.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   useEffect(() => {
@@ -298,16 +331,17 @@ export default function FormularioInspecao() {
                 </ScrollArea>
                 <div className="mt-4 space-y-2">
                   <Progress value={totalProgress} className="w-full" />
-                  <p className="text-sm text-muted-foreground text-center">
+                  <p className="text-sm text-muted-foreground text-center pb-2">
                     {Math.round(totalProgress)}% concluído
                   </p>
-                  <Button
-                    onClick={handleSubmit}
-                    className="w-full py-2 text-sm"
-                    disabled={totalProgress < 100}
-                  >
-                    Calcular
-                  </Button>
+                  <Link href="/result-page">
+                    <Button
+                      /*onClick={handleSubmit}*/
+                      className="w-full py-2 text-sm"
+                    >
+                      Calcular
+                    </Button>
+                  </Link>
                 </div>
               </aside>
               <div className="flex-1 lg:max-w-4xl">
@@ -318,60 +352,70 @@ export default function FormularioInspecao() {
                       <p className="text-sm text-muted-foreground mt-1">{sectionDescriptions[activeSection]}</p>
                       <Separator className="mt-4" />
                     </div>
-                    {Object.entries(questions[activeSection]).map(([category, categoryQuestions]) => (
-                      <div key={category}>
-                        <h3 className="text-xl font-semibold mb-4">{category}</h3>
-                        {categoryQuestions.map((question, qIndex) => {
-                          const questionNumber = Object.values(questions[activeSection])
-                            .flat()
-                            .findIndex((q) => q === question) + 1;
-                          const options = category === 'Formato de Apresentação'
-                            ? ['Apropriado', 'Inapropriado', 'Necessita melhorias', 'Outro']
-                            : ['Suficiente', 'Insuficiente', 'Inexistente', 'Outro'];
-                          return (
-                            <Card key={`${category}-${qIndex}`} className="relative mb-4">
-                              <CardContent className="pt-6 pb-4 px-6">
-                                <motion.div
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: questionNumber * 0.1 }}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {Object.keys(questions[activeSection]).map((category) => (
+                        <Badge 
+                          key={category} 
+                          variant={activeCategory === category ? "default" : "outline"}
+                          className={cn(
+                            "text-sm cursor-pointer",
+                            activeCategory === category ? "bg-primary text-primary-foreground" : "hover:bg-secondary"
+                          )}
+                          onClick={() => setActiveCategory(category as QuestionCategory)}
+                        >
+                          {category}
+                        </Badge>
+                      ))}
+                    </div>
+                    <div>
+                      {questions[activeSection][activeCategory].map((question, qIndex) => {
+                        const questionNumber = questions[activeSection][activeCategory].findIndex((q) => q === question) + 1;
+                        const options = activeCategory === 'Formato de Apresentação'
+                          ? ['Apropriado', 'Inapropriado', 'Necessita melhorias', 'Outro']
+                          : ['Suficiente', 'Insuficiente', 'Inexistente', 'Outro'];
+                        return (
+                          <Card key={`${activeCategory}-${qIndex}`} className="relative mb-4">
+                            <CardContent className="pt-6 pb-4 px-6">
+                              <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: questionNumber * 0.1 }}
+                              >
+                                <Label className="text-base font-medium mb-2 block">
+                                  <span className="font-bold mr-2">{questionNumber}.</span>
+                                  <TextWithHoverCard
+                                    text={question}
+                                    hoverCards={hoverCardInfo[activeSection]?.[activeCategory] || []}
+                                  />
+                                </Label>
+                                <Separator className="my-4" />
+                                <RadioGroup
+                                  value={formData[activeSection]?.[`${activeCategory}-${qIndex}`] || ""}
+                                  onValueChange={(value) => handleRadioChange(activeSection, `${activeCategory}-${qIndex}`, value)}
+                                  className="flex flex-col space-y-2 mt-2"
                                 >
-                                  <Label className="text-base font-medium mb-2 block">
-                                    <span className="font-bold mr-2">{questionNumber}.</span>
-                                    <TextWithHoverCard
-                                      text={question}
-                                      hoverCards={hoverCardInfo[activeSection]?.[category] || []}
-                                    />
-                                  </Label>
-                                  <Separator className="my-4" />
-                                  <RadioGroup
-                                    value={formData[activeSection]?.[`${category}-${qIndex}`] || ""}
-                                    onValueChange={(value) => handleRadioChange(activeSection, `${category}-${qIndex}`, value)}
-                                    className="flex flex-col space-y-2 mt-2"
-                                  >
-                                    {options.map((option) => (
-                                      <div key={option} className="flex items-center space-x-2">
-                                        <RadioGroupItem value={option} id={`${activeSection}-${category}-${qIndex}-${option}`} />
-                                        <Label htmlFor={`${activeSection}-${category}-${qIndex}-${option}`}>{option}</Label>
-                                      </div>
-                                    ))}
-                                  </RadioGroup>
-                                  {formData[activeSection]?.[`${category}-${qIndex}`] === 'Outro' && (
-                                    <Input
-                                      type="text"
-                                      placeholder="Descreva"
-                                      className="mt-2"
-                                      value={otherText[activeSection]?.[`${category}-${qIndex}`] || ''}
-                                      onChange={(e) => handleOtherTextChange(activeSection, `${category}-${qIndex}`, e.target.value)}
-                                    />
-                                  )}
-                                </motion.div>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    ))}
+                                  {options.map((option) => (
+                                    <div key={option} className="flex items-center space-x-2">
+                                      <RadioGroupItem value={option} id={`${activeSection}-${activeCategory}-${qIndex}-${option}`} />
+                                      <Label htmlFor={`${activeSection}-${activeCategory}-${qIndex}-${option}`}>{option}</Label>
+                                    </div>
+                                  ))}
+                                </RadioGroup>
+                                {formData[activeSection]?.[`${activeCategory}-${qIndex}`] === 'Outro' && (
+                                  <Input
+                                    type="text"
+                                    placeholder="Descreva"
+                                    className="mt-2"
+                                    value={otherText[activeSection]?.[`${activeCategory}-${qIndex}`] || ''}
+                                    onChange={(e) => handleOtherTextChange(activeSection, `${activeCategory}-${qIndex}`, e.target.value)}
+                                  />
+                                )}
+                              </motion.div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
                   </div>
                 </ScrollArea>
               </div>
