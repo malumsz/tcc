@@ -28,82 +28,6 @@ const sectionIcons: Record<QuestionSection, LucideIcon> = {
   'Agenciamento': ShieldCheck,
 }
 
-type HoverCardInfo = {
-  trigger: string;
-  content: string;
-}
-
-const hoverCardInfo: Record<QuestionSection, Record<string, HoverCardInfo[]>> = {
-  'Pessoas/Atores': {
-    'Existência e Qualidade da Informação': [
-      {
-        trigger: 'agências de proteção de dados',
-        content: 'Órgãos que garantem o cumprimento das leis de privacidade e proteção de dados pessoais, como a ANPD no Brasil e o EDPB na Europa.'
-      }
-    ],
-    'Formato de Apresentação': []
-  },
-  'Propósito de uso': {
-    'Existência e Qualidade da Informação': [
-      {
-        trigger: 'lei/regulamentação',
-        content: 'Leis que autorizam o tratamento de dados pessoais, como a LGPD no Brasil ou o GDPR na Europa.'
-      }
-    ],
-    'Formato de Apresentação': []
-  },
-  'Dados pessoais': {
-    'Existência e Qualidade da Informação': [],
-    'Formato de Apresentação': []
-  },
-  'Compartilhamento': {
-    'Existência e Qualidade da Informação': [
-      {
-        trigger: 'base legal',
-        content: 'Justificativa legal que permite o compartilhamento de dados, como consentimento ou obrigações legais, conforme a LGPD ou GDPR.'
-      }
-    ],
-    'Formato de Apresentação': []
-  },
-  'Agenciamento': {
-    'Existência e Qualidade da Informação': [],
-    'Formato de Apresentação': []
-  }
-}
-
-const TextWithHoverCard: React.FC<{ text: string; hoverCards: HoverCardInfo[] }> = ({ text, hoverCards }) => {
-  const parts = text.split(new RegExp(`(${hoverCards.map(hc => hc.trigger).join('|')})`, 'gi'));
-
-  return (
-    <>
-      {parts.map((part, index) => {
-        const hoverCard = hoverCards.find(hc => hc.trigger.toLowerCase() === part.toLowerCase());
-        if (hoverCard) {
-          return (
-            <HoverCard key={index}>
-              <HoverCardTrigger asChild>
-                <span className="cursor-pointer font-bold hover:underline transition-all duration-200">
-                  {part}
-                </span>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-80">
-                <div className="flex justify-between space-x-4">
-                <InfoIcon className="h-6 w-6 text-muted-foreground flex-shrink-0" />
-                  <div className="space-y-1 flex-grow">
-                    <h4 className="text-sm font-semibold">{hoverCard.trigger}</h4>
-                    <p className="text-sm text-muted-foreground">{hoverCard.content}</p>
-                  </div>
-                </div>
-              </HoverCardContent>
-            </HoverCard>
-          );
-        }
-        return <span key={index}>{part}</span>;
-      })}
-    </>
-  );
-};
-
 export default function FormularioInspecao() {
   const router = useRouter()
 
@@ -144,43 +68,6 @@ export default function FormularioInspecao() {
     router.push('/result-page')
   }
 
-  /*const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Prepare the data for JSON export
-    const exportData: Record<QuestionSection, Record<QuestionCategory, Record<string, string>>> = {} as Record<QuestionSection, Record<QuestionCategory, Record<string, string>>>;
-
-    (Object.keys(questions) as QuestionSection[]).forEach(section => {
-      exportData[section] = {} as Record<QuestionCategory, Record<string, string>>;
-
-      (Object.keys(questions[section]) as QuestionCategory[]).forEach(category => {
-        exportData[section][category] = {};
-        questions[section][category].forEach((question, index) => {
-          const key = `${category}-${index}`;
-          const answer = formData[section][key] || '';
-          const otherAnswer = formData[section][key] === 'Outro' ? otherText[section][key] || '' : '';
-          exportData[section][category][question] = answer + (otherAnswer ? ` - ${otherAnswer}` : '');
-        });
-      });
-    });
-
-    // Convert the data to a JSON string
-    const jsonString = JSON.stringify(exportData, null, 2);
-
-    // Create a Blob with the JSON data
-    const blob = new Blob([jsonString], { type: 'application/json' });
-
-    // Create a download link and trigger the download
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'formulario_inspecao_respostas.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }*/
-
   useEffect(() => {
     const { formData: savedFormData, otherText: savedOtherText } = getFormData()
     if (Object.keys(savedFormData).length > 0) {
@@ -214,6 +101,14 @@ export default function FormularioInspecao() {
 
   const isSectionComplete = (section: QuestionSection) => {
     return progress[section] === 100;
+  }
+
+  const isCategoryComplete = (section: QuestionSection, category: QuestionCategory) => {
+    const categoryQuestions = questions[section][category];
+    const answeredQuestions = categoryQuestions.filter((_, index) =>
+      formData[section]?.[`${category}-${index}`]
+    );
+    return answeredQuestions.length === categoryQuestions.length;
   }
 
   return (
@@ -287,12 +182,18 @@ export default function FormularioInspecao() {
                           key={category}
                           variant={activeCategory === category ? "default" : "outline"}
                           className={cn(
-                            "text-sm cursor-pointer",
-                            activeCategory === category ? "bg-primary text-primary-foreground" : "hover:bg-secondary"
+                            "text-xs sm:text-sm cursor-pointer flex items-center justify-center",
+                            "px-2 py-1 sm:px-3 sm:py-1.5",
+                            "transition-all duration-200 ease-in-out",
+                            activeCategory === category ? "bg-primary text-primary-foreground" : "hover:bg-secondary",
+                            isCategoryComplete(activeSection, category as QuestionCategory) ? "border-green-500 border-2" : ""
                           )}
                           onClick={() => setActiveCategory(category as QuestionCategory)}
                         >
-                          {category}
+                          <span className="truncate">{category}</span>
+                          {isCategoryComplete(activeSection, category as QuestionCategory) && (
+                            <CheckCircle2 className="ml-1 h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                          )}
                         </Badge>
                       ))}
                     </div>
@@ -312,10 +213,7 @@ export default function FormularioInspecao() {
                               >
                                 <Label className="text-base font-medium mb-2 block">
                                   <span className="font-bold mr-2">{questionNumber}.</span>
-                                  <TextWithHoverCard
-                                    text={question}
-                                    hoverCards={hoverCardInfo[activeSection]?.[activeCategory] || []}
-                                  />
+                                  {question}
                                 </Label>
                                 <Separator className="my-4" />
                                 <RadioGroup

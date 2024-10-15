@@ -46,7 +46,7 @@ export const downloadFormData = (questions: Record<QuestionSection, Record<Quest
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = 'formulario_inspecao_respostas.json'
+  link.download = 'privacy_tool_respostas.json'
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
