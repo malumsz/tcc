@@ -6,12 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 import { downloadFormData, clearFormData, getFormData } from '@/components/util/formStorage'
-import { questions, QuestionSection, QuestionCategory } from '@/components/util/questions'
+import { questions, QuestionSection, QuestionCategory, sectionDescriptions } from '@/components/util/questions'
 import HomeButton from '@/components/home-button'
-import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Trophy } from 'lucide-react'
+import { PieChart, Pie, Cell, ResponsiveContainer, Label, Legend } from 'recharts'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
+import { Trophy, AlertCircle, Users, MousePointerSquare, Database, Share2, ShieldCheck, CheckCircle2, LucideIcon } from 'lucide-react'
+import { cn } from "@/lib/utils"
 
 interface Medal {
   type: string;
@@ -24,26 +28,49 @@ interface CategoryScore {
   percentageAnswered: number;
 }
 
+interface SectionScore extends CategoryScore {
+  medal: Medal;
+}
+
 type FormData = Record<QuestionSection, Record<string, string>>
-type OtherText = Record<QuestionSection, Record<string, string>>
+type ProcessedFormData = Record<QuestionSection, Record<QuestionCategory, Record<string, string>>>
 
 interface ChartData {
   name: string;
   value: number;
+  fill: string;
+}
+
+const COLORS: Record<string, string> = {
+  'Suficiente': 'hsl(var(--chart-1))',
+  'Insuficiente': 'hsl(var(--chart-2))',
+  'Inexistente': 'hsl(var(--chart-3))',
+  'Outro': 'hsl(var(--chart-4))',
+  'Apropriado': 'hsl(var(--chart-1))',
+  'Inapropriado': 'hsl(var(--chart-2))',
+  'Necessita melhorias': 'hsl(var(--chart-3))'
+}
+
+const sectionIcons: Record<QuestionSection, LucideIcon> = {
+  'Pessoas/Atores': Users,
+  'Propósito de uso': MousePointerSquare,
+  'Dados pessoais': Database,
+  'Compartilhamento': Share2,
+  'Agenciamento': ShieldCheck,
 }
 
 const getMedalType = (score: number): Medal => {
   if (score >= 91) return { type: 'Ouro', color: '#FFD700', icon: <Trophy className="h-6 w-6 text-yellow-500" /> }
   if (score >= 61) return { type: 'Prata', color: '#C0C0C0', icon: <Trophy className="h-6 w-6 text-gray-400" /> }
   if (score >= 41) return { type: 'Bronze', color: '#CD7F32', icon: <Trophy className="h-6 w-6 text-orange-700" /> }
-  return { type: 'Lata', color: '#808080', icon: <Trophy className="h-6 w-6 text-gray-600" /> }
+  return { type: 'Iniciante', color: '#808080', icon: <Trophy className="h-6 w-6 text-gray-600" /> }
 }
 
 const calculateCategoryScore = (categoryData: Record<string, string>, totalQuestions: number): CategoryScore => {
   let answeredQuestions = 0
   let score = 0
 
-  Object.entries(categoryData).forEach(([_, answer]) => {
+  Object.values(categoryData).forEach(answer => {
     if (answer) {
       answeredQuestions++
       if (answer === 'Apropriado' || answer === 'Suficiente') {
@@ -60,23 +87,73 @@ const calculateCategoryScore = (categoryData: Record<string, string>, totalQuest
   return { score: categoryScore, percentageAnswered }
 }
 
+const calculateSectionScore = (sectionScores: Record<QuestionCategory, CategoryScore>): SectionScore => {
+  const totalScore = Object.values(sectionScores).reduce((acc, curr) => acc + curr.score, 0)
+  const totalPercentage = Object.values(sectionScores).reduce((acc, curr) => acc + curr.percentageAnswered, 0)
+  const averageScore = Math.round(totalScore / Object.keys(sectionScores).length)
+  const averagePercentage = totalPercentage / Object.keys(sectionScores).length
+
+  return {
+    score: averageScore,
+    percentageAnswered: averagePercentage,
+    medal: getMedalType(averageScore)
+  }
+}
+
+const countAnswers = (categoryData: Record<string, string>): ChartData[] => {
+  const counts: Record<string, number> = {}
+  Object.values(categoryData).forEach(answer => {
+    if (answer) {
+      counts[answer] = (counts[answer] || 0) + 1
+    }
+  })
+  return Object.entries(counts).map(([name, value]) => ({ name, value, fill: COLORS[name] || 'hsl(var(--chart-5))' }))
+}
+
+const processFormData = (rawFormData: FormData): ProcessedFormData => {
+  const processedData: ProcessedFormData = {} as ProcessedFormData;
+  Object.entries(rawFormData).forEach(([section, sectionData]) => {
+    processedData[section as QuestionSection] = {} as Record<QuestionCategory, Record<string, string>>;
+    Object.entries(questions[section as QuestionSection]).forEach(([category, _]) => {
+      processedData[section as QuestionSection][category as QuestionCategory] = {};
+      Object.entries(sectionData).forEach(([key, value]) => {
+        if (key.startsWith(category)) {
+          processedData[section as QuestionSection][category as QuestionCategory][key] = value;
+        }
+      });
+    });
+  });
+  return processedData;
+};
+
 export default function ResultsPage() {
   const [isLoading, setIsLoading] = useState(true)
-  const [formData, setFormData] = useState<FormData>({} as FormData)
-  const [categoryScores, setCategoryScores] = useState<Record<QuestionSection, CategoryScore>>({} as Record<QuestionSection, CategoryScore>)
+  const [formData, setFormData] = useState<ProcessedFormData>({} as ProcessedFormData)
+  const [categoryScores, setCategoryScores] = useState<Record<QuestionSection, Record<QuestionCategory, CategoryScore>>>({} as Record<QuestionSection, Record<QuestionCategory, CategoryScore>>)
+  const [sectionScores, setSectionScores] = useState<Record<QuestionSection, SectionScore>>({} as Record<QuestionSection, SectionScore>)
+  const [activeSection, setActiveSection] = useState<QuestionSection>('Pessoas/Atores')
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const { formData, otherText } = getFormData()
-      setFormData(formData)
+      const { formData: rawFormData } = getFormData()
+      const processedData = processFormData(rawFormData)
+      setFormData(processedData)
 
-      const scores: Record<QuestionSection, CategoryScore> = {} as Record<QuestionSection, CategoryScore>
+      const scores: Record<QuestionSection, Record<QuestionCategory, CategoryScore>> = {} as Record<QuestionSection, Record<QuestionCategory, CategoryScore>>
+      const sectionScores: Record<QuestionSection, SectionScore> = {} as Record<QuestionSection, SectionScore>
+
       Object.entries(questions).forEach(([section, sectionQuestions]) => {
-        const totalQuestions = Object.values(sectionQuestions).flat().length
-        scores[section as QuestionSection] = calculateCategoryScore(formData[section as QuestionSection] || {}, totalQuestions)
+        scores[section as QuestionSection] = {} as Record<QuestionCategory, CategoryScore>
+        Object.entries(sectionQuestions).forEach(([category, categoryQuestions]) => {
+          const totalQuestions = categoryQuestions.length
+          const categoryData = processedData[section as QuestionSection]?.[category as QuestionCategory] || {}
+          scores[section as QuestionSection][category as QuestionCategory] = calculateCategoryScore(categoryData, totalQuestions)
+        })
+        sectionScores[section as QuestionSection] = calculateSectionScore(scores[section as QuestionSection])
       })
-      setCategoryScores(scores)
 
+      setCategoryScores(scores)
+      setSectionScores(sectionScores)
       setIsLoading(false)
     }, 1500)
 
@@ -88,80 +165,167 @@ export default function ResultsPage() {
     clearFormData()
   }
 
-  const renderCategoryCard = (section: QuestionSection) => {
-    const { score, percentageAnswered } = categoryScores[section]
-    const { type: medalType, color: medalColor, icon: medalIcon } = getMedalType(score)
+  const renderCategoryChart = (section: QuestionSection, category: QuestionCategory) => {
+    const categoryData = categoryScores[section]?.[category]
+    if (!categoryData) {
+      return null
+    }
 
-    const chartData: ChartData[] = [
-      { name: 'Pontuação', value: score },
-      { name: 'Restante', value: 100 - score }
-    ]
+    const { score } = categoryData
 
-    const chartConfig = {
-      score: {
-        label: "Pontuação",
-        color: "hsl(var(--chart-1))",
-      },
-      remaining: {
-        label: "Restante",
-        color: "hsl(var(--chart-2))",
-      },
+    const answerCounts = countAnswers(formData[section]?.[category] || {})
+    const totalAnswers = answerCounts.reduce((acc, curr) => acc + curr.value, 0)
+
+    const chartConfig = Object.fromEntries(
+      answerCounts.map(({ name, fill }) => [name, { label: name, color: fill }])
+    )
+
+    if (totalAnswers === 0) {
+      return (
+        <Card className="flex flex-col items-center justify-center p-6">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground text-center">Nenhuma questão respondida nesta categoria</p>
+        </Card>
+      )
     }
 
     return (
-      <Card key={section} className="mb-6">
-        <CardHeader>
-          <CardTitle>{section}</CardTitle>
-          <CardDescription>{`${percentageAnswered.toFixed(1)}% das questões respondidas`}</CardDescription>
+      <Card className="flex flex-col">
+        <CardHeader className="items-center pb-0">
+          <CardTitle>{category}</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center">
-          <ChartContainer config={chartConfig} className="w-48 h-48">
+        <CardContent className="flex-1 pb-0">
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto aspect-square max-h-[250px]"
+          >
             <PieChart>
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
               <Pie
-                data={chartData}
+                data={answerCounts}
                 dataKey="value"
                 nameKey="name"
-                cx="50%"
-                cy="50%"
                 innerRadius={60}
                 outerRadius={80}
                 paddingAngle={5}
+                strokeWidth={5}
               >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={index === 0 ? chartConfig.score.color : chartConfig.remaining.color} />
+                {answerCounts.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
                 <Label
                   content={({ viewBox }) => {
-                    if (!viewBox) return null;
-
-                    const { cx, cy } = viewBox as { cx: number; cy: number };
-
-                    return (
-                      <text x={cx} y={cy} fill="currentColor" textAnchor="middle" dominantBaseline="central">
-                        <tspan x={cx} y={cy - 10} className="text-2xl font-bold">{score}</tspan>
-                        <tspan x={cx} y={cy + 10} className="text-xs">Pontuação</tspan>
-                      </text>
-                    );
+                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className="fill-foreground text-3xl font-bold"
+                          >
+                            {totalAnswers}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className="fill-muted-foreground"
+                          >
+                            Respondidas
+                          </tspan>
+                        </text>
+                      )
+                    }
                   }}
                 />
               </Pie>
+              <ChartLegend
+                content={<ChartLegendContent nameKey="name" />}
+                className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+              />
             </PieChart>
           </ChartContainer>
-          <div className="mt-4 flex items-center">
-            {medalIcon}
-            <span className="ml-2 font-bold">{medalType}</span>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const renderSectionSummary = (section: QuestionSection) => {
+    const sectionScore = sectionScores[section]
+    if (!sectionScore) {
+      return null
+    }
+
+    const { score, percentageAnswered, medal } = sectionScore
+
+    return (
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 mb-2 sm:mb-0">
+                <div className="bg-primary text-primary-foreground rounded-full p-2">
+                  {medal.icon}
+                </div>
+                <span className="font-bold text-xl sm:text-2xl">{medal.type}</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {`${percentageAnswered.toFixed(1)}% das questões respondidas`}
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Progress value={score} className="flex-grow" />
+              <div className="text-2xl sm:text-3xl font-semibold bg-primary text-primary-foreground px-3 py-1 rounded">
+                {score}
+              </div>
+            </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <Progress value={percentageAnswered} className="w-full" />
-        </CardFooter>
+      </Card>
+    )
+  }
+
+  const renderQuestionResponses = (section: QuestionSection) => {
+    const sectionData = formData[section]
+    if (!sectionData) return null
+
+    return (
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Respostas Detalhadas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[300px] w-full">
+            {Object.entries(sectionData).map(([category, categoryData]) => (
+              <div key={category} className="mb-4">
+                <h4 className="font-semibold mb-2">{category}</h4>
+                {Object.entries(categoryData).map(([questionKey, answer]) => {
+                  const [_, index] = questionKey.split('-')
+                  const question = questions[section][category as QuestionCategory][parseInt(index)]
+                  return (
+                    <div key={questionKey} className="mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-muted-foreground mb-1 sm:mb-0 sm:mr-2">{question}</p>
+                      <Badge variant="secondary" className="self-start sm:self-center">{answer}</Badge>
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </ScrollArea>
+        </CardContent>
       </Card>
     )
   }
 
   return (
-    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
       <HomeButton />
       {isLoading ? (
         <div className="space-y-4">
@@ -171,20 +335,75 @@ export default function ResultsPage() {
           <Skeleton className="h-4 w-4/5" />
         </div>
       ) : (
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl font-bold mb-6">Resultados da Inspeção</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Object.keys(questions).map((section) => renderCategoryCard(section as QuestionSection))}
-          </div>
-          <div className="mt-6 flex justify-end">
-            <Button onClick={handleDownload}>
-              Download Resultados (JSON)
-            </Button>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-6">Resultados da Inspeção</h1>
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col lg:flex-row lg:space-x-6 xl:space-x-12">
+                <aside className="w-full lg:w-1/4 mb-6 lg:mb-0">
+                  <h2 className="text-lg font-semibold mb-4">Seções</h2>
+                  <ScrollArea className="h-[calc(100vh-20rem)] lg:h-[calc(100vh-24rem)]">
+                    <nav className="flex flex-col space-y-1">
+                      {(Object.keys(questions) as QuestionSection[]).map((section) => {
+                        const Icon = sectionIcons[section]
+                        const sectionScore = sectionScores[section]
+                        return (
+                          <Button
+                            key={section}
+                            variant={activeSection === section ? "secondary" : "ghost"}
+                            className={cn(
+                              "justify-start w-full text-left",
+                              activeSection === section ? "bg-secondary" : "hover:bg-secondary/50"
+                            )}
+                            onClick={() => setActiveSection(section)}
+                          >
+                            <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
+                            <span className="truncate flex-grow">{section}</span>
+                            {sectionScore && (
+                              <div className="flex items-center ml-2 text-primary">
+                                <Trophy className="h-3 w-3 mr-1" />
+                                <span className="text-xs font-semibold">{sectionScore.score}</span>
+                              </div>
+                            )}
+                          </Button>
+                        )
+                      })}
+                    </nav>
+                  </ScrollArea>
+                  <div className="mt-4">
+                    <Button
+                      onClick={handleDownload}
+                      className="w-full py-2 text-sm"
+                    >
+                      Download Resultados (JSON)
+                    </Button>
+                  </div>
+                </aside>
+                <div className="flex-1">
+                  <ScrollArea className="h-[calc(100vh-16rem)] pr-4 sm:pr-6">
+                    <div className="space-y-6">
+                      <div className="sticky top-0 bg-background z-10 py-4">
+                        <h2 className="text-xl sm:text-2xl font-bold">{activeSection}</h2>
+                        <p className="text-sm text-muted-foreground mt-1">{sectionDescriptions[activeSection]}</p>
+                        <Separator className="mt-4" />
+                      </div>
+                      {renderSectionSummary(activeSection)}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {renderCategoryChart(activeSection, 'Existência e Qualidade da Informação')}
+                        {renderCategoryChart(activeSection, 'Formato de Apresentação')}
+                      </div>
+                      {renderQuestionResponses(activeSection)}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       )}
     </div>
