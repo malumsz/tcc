@@ -17,6 +17,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Label, Legend } from 'rechart
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { Trophy, AlertCircle, Users, MousePointerSquare, Database, Share2, ShieldCheck, CheckCircle2, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import Link from 'next/link'
 
 interface Medal {
   type: string;
@@ -64,7 +65,7 @@ const getMedalType = (score: number): Medal => {
   if (score >= 91) return { type: 'Ouro', color: '#FFD700', icon: <Trophy className="h-6 w-6 text-yellow-500" /> }
   if (score >= 61) return { type: 'Prata', color: '#C0C0C0', icon: <Trophy className="h-6 w-6 text-gray-400" /> }
   if (score >= 41) return { type: 'Bronze', color: '#CD7F32', icon: <Trophy className="h-6 w-6 text-orange-700" /> }
-  return { type: 'Iniciante', color: '#808080', icon: <Trophy className="h-6 w-6 text-gray-600" /> }
+  return { type: 'Incipiente / Inexistente', color: '#808080', icon: <Trophy className="h-6 w-6 text-gray-600" /> }
 }
 
 const calculateCategoryScore = (categoryData: Record<string, string>, totalQuestions: number): CategoryScore => {
@@ -154,7 +155,7 @@ const renderSectionSummary = (section: QuestionSection, sectionScores: Record<Qu
           <div className="flex items-center gap-4">
             <Progress value={score} className="flex-grow" />
             <div className="text-2xl sm:text-3xl font-semibold bg-primary text-primary-foreground px-3 py-1 rounded">
-              {score}
+              {score}/100
             </div>
           </div>
         </div>
@@ -189,11 +190,11 @@ const renderCategoryChart = (section: QuestionSection, category: QuestionCategor
   }
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>{category}</CardTitle>
+    <Card className="flex flex-col h-full">
+      <CardHeader className="items-center">
+        <CardTitle className="text-center">{category}</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="flex-1 pb-4 pt-2">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square max-h-[250px]"
@@ -268,11 +269,12 @@ const renderQuestionResponses = (section: QuestionSection, formData: ProcessedFo
     return (
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Respostas Detalhadas</CardTitle>
+          <CardTitle className="mb-3">Respostas Detalhadas</CardTitle>
+          <Separator className="my-4" />
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center p-6">
           <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground text-center">Nenhuma questão respondida nesta seção</p>
+          <p className="text-muted-foreground text-center">Nenhuma questão respondida nesta categoria</p>
         </CardContent>
       </Card>
     )
@@ -280,57 +282,33 @@ const renderQuestionResponses = (section: QuestionSection, formData: ProcessedFo
 
   return (
     <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>Respostas Detalhadas</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue={Object.keys(sectionData)[0]}>
-          <TabsList className="grid w-full grid-cols-2">
-            {Object.keys(sectionData).map((category) => (
-              <TabsTrigger key={category} value={category}>
-                {category}
-              </TabsTrigger>
+        <CardHeader>
+          <CardTitle className="mb-3">Respostas Detalhadas</CardTitle>
+          <Separator className="my-4" />
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[300px] w-full pr-4">
+            {Object.entries(sectionData).map(([category, categoryData]) => (
+              <div key={category} className="mb-4">
+                <h4 className="font-semibold mb-2">{category}</h4>
+                <Separator className="my-4" />
+                {Object.entries(categoryData).map(([questionKey, answer]) => {
+                  const [_, index] = questionKey.split('-')
+                  const question = questions[section][category as QuestionCategory][parseInt(index)]
+                  return (
+                    <div key={questionKey} className="mb-2 flex flex-wrap items-start">
+                      <p className="text-sm text-muted-foreground flex-grow mr-2">{question}</p>
+                      <Badge variant="secondary" className="mt-1 whitespace-normal text-right">
+                        {answer || 'Não respondida'}
+                      </Badge>
+                    </div>
+                  )
+                })}
+              </div>
             ))}
-          </TabsList>
-          {Object.entries(sectionData).map(([category, categoryData]) => (
-            <TabsContent key={category} value={category}>
-              <ScrollArea className="h-[400px] w-full">
-                <div className="space-y-4 pr-4">
-                  {Object.entries(categoryData).map(([questionKey, answer]) => {
-                    const [_, index] = questionKey.split('-')
-                    const question = questions[section][category as QuestionCategory][parseInt(index)]
-                    return (
-                      <motion.div
-                        key={questionKey}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <Card>
-                          <CardContent className="p-4">
-                            <div className="flex flex-col space-y-2">
-                              <p className="text-sm text-muted-foreground">{question}</p>
-                              <div className="flex justify-center">
-                                <Badge
-                                  variant={answer ? "default" : "secondary"}
-                                  className="text-xs py-0.5 px-2"
-                                >
-                                  {answer || 'Não respondida'}
-                                </Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    )
-                  })}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </CardContent>
-    </Card>
+          </ScrollArea>
+        </CardContent>
+      </Card>
   )
 }
 
@@ -390,13 +368,20 @@ export default function Component() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-2xl sm:text-3xl font-bold mb-6">Resultados da Inspeção</h1>
-          <Card>
+          <Card className="mb-6">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col lg:flex-row lg:space-x-6 xl:space-x-12">
-                <aside className="w-full lg:w-1/4 mb-6 lg:mb-0">
+                <div className="w-full lg:w-1/4 mb-6 lg:mb-0">
+                  <CardHeader className="px-0 pt-0">
+                    <CardTitle className="text-2xl sm:text-3xl mb-2">Resultados da Inspeção</CardTitle>
+                    <CardDescription>
+                      Esta página apresenta um resumo detalhado dos resultados da sua inspeção.
+                      Explore as diferentes seções para obter insights sobre cada aspecto avaliado.
+                    </CardDescription>
+                  </CardHeader>
+                  <Separator className="my-4" />
                   <h2 className="text-lg font-semibold mb-4">Seções</h2>
-                  <ScrollArea className="h-[calc(100vh-20rem)] lg:h-[calc(100vh-24rem)]">
+                  <ScrollArea className="h-[calc(100vh-20rem)] lg:h-[calc(85vh-24rem)]">
                     <nav className="flex flex-col space-y-1">
                       {(Object.keys(questions) as QuestionSection[]).map((section) => {
                         const Icon = sectionIcons[section]
@@ -424,20 +409,27 @@ export default function Component() {
                       })}
                     </nav>
                   </ScrollArea>
-                  <div className="mt-4">
+                  <div className="mt-4 space-y-4">
                     <Button
                       onClick={handleDownload}
-                      className="w-full py-2 text-sm"
+                      className="w-full py-2 text-sm mb-3"
                     >
                       Download (JSON)
                     </Button>
+                    <Link href="/form-page" passHref>
+                      <Button
+                        size="lg" variant="outline" className="w-full group hover:bg-secondary/10"
+                      >
+                        Realizar outra inspeção
+                      </Button>
+                    </Link>
                   </div>
-                </aside>
-                <div className="flex-1 overflow-hidden">
-                  <ScrollArea className="h-[calc(100vh-16rem)] pr-4 sm:pr-6">
-                    <div className="space-y-6">
+                </div>
+                <div className="flex-1">
+                  <ScrollArea className="h-[calc(100vh-10rem)]">
+                    <div className="space-y-6 pr-4">
                       <div className="sticky top-0 bg-background z-10 py-4">
-                        <h2 className="text-xl sm:text-2xl font-bold">{activeSection}</h2>
+                        <h3 className="text-xl sm:text-2xl font-bold">{activeSection}</h3>
                         <p className="text-sm text-muted-foreground mt-1">{sectionDescriptions[activeSection]}</p>
                         <Separator className="mt-4" />
                       </div>
