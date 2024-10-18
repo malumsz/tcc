@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -14,7 +14,7 @@ import { questions, QuestionSection, QuestionCategory, sectionDescriptions } fro
 import HomeButton from '@/components/home-button'
 import { PieChart, Pie, Cell, ResponsiveContainer, Label, Legend } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
-import { Trophy, AlertCircle, Users, MousePointerSquare, Database, Share2, ShieldCheck, CheckCircle2, LucideIcon } from 'lucide-react'
+import { Trophy, AlertCircle, Users, MousePointerSquare, Database, Share2, ShieldCheck, CheckCircle2, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from "@/lib/utils"
 
 interface Medal {
@@ -67,31 +67,32 @@ const getMedalType = (score: number): Medal => {
 }
 
 const calculateCategoryScore = (categoryData: Record<string, string>, totalQuestions: number): CategoryScore => {
-  let answeredQuestions = 0
   let score = 0
+  let answeredQuestions = 0
 
   Object.values(categoryData).forEach(answer => {
     if (answer) {
       answeredQuestions++
       if (answer === 'Apropriado' || answer === 'Suficiente') {
         score += 100
-      } else if (answer === 'Inapropriado' || answer === 'Insuficiente') {
+      } else if (answer === 'Necessita melhorias' || answer === 'Insuficiente') {
         score += 50
       }
     }
   })
 
+  const categoryScore = Math.round((score / (totalQuestions * 100)) * 100)
   const percentageAnswered = (answeredQuestions / totalQuestions) * 100
-  const categoryScore = answeredQuestions > 0 ? Math.round(score / answeredQuestions) : 0
 
   return { score: categoryScore, percentageAnswered }
 }
 
 const calculateSectionScore = (sectionScores: Record<QuestionCategory, CategoryScore>): SectionScore => {
-  const totalScore = Object.values(sectionScores).reduce((acc, curr) => acc + curr.score, 0)
-  const totalPercentage = Object.values(sectionScores).reduce((acc, curr) => acc + curr.percentageAnswered, 0)
-  const averageScore = Math.round(totalScore / Object.keys(sectionScores).length)
-  const averagePercentage = totalPercentage / Object.keys(sectionScores).length
+  const scores = Object.values(sectionScores)
+  const totalScore = scores.reduce((acc, curr) => acc + curr.score, 0)
+  const totalPercentage = scores.reduce((acc, curr) => acc + curr.percentageAnswered, 0)
+  const averageScore = Math.round(totalScore / scores.length)
+  const averagePercentage = totalPercentage / scores.length
 
   return {
     score: averageScore,
@@ -126,7 +127,218 @@ const processFormData = (rawFormData: FormData): ProcessedFormData => {
   return processedData;
 };
 
-export default function ResultsPage() {
+const renderSectionSummary = (section: QuestionSection, sectionScores: Record<QuestionSection, SectionScore>) => {
+  const sectionScore = sectionScores[section]
+  if (!sectionScore) {
+    return null
+  }
+
+  const { score, percentageAnswered, medal } = sectionScore
+
+  return (
+    <Card className="mb-6">
+      <CardContent className="pt-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 mb-2 sm:mb-0">
+              <div className="bg-primary text-primary-foreground rounded-full p-2">
+                {medal.icon}
+              </div>
+              <span className="font-bold text-xl sm:text-2xl">{medal.type}</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {`${percentageAnswered.toFixed(1)}% das questões respondidas`}
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <Progress value={score} className="flex-grow" />
+            <div className="text-2xl sm:text-3xl font-semibold bg-primary text-primary-foreground px-3 py-1 rounded">
+              {score}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+const renderCategoryChart = (section: QuestionSection, category: QuestionCategory, formData: ProcessedFormData, categoryScores: Record<QuestionSection, Record<QuestionCategory, CategoryScore>>) => {
+  const categoryData = categoryScores[section]?.[category]
+  if (!categoryData) {
+    return null
+  }
+
+  const { score } = categoryData
+
+  const answerCounts = countAnswers(formData[section]?.[category] || {})
+  const totalAnswers = answerCounts.reduce((acc, curr) => acc + curr.value, 0)
+
+  const chartConfig = Object.fromEntries(
+    answerCounts.map(({ name, fill }) => [name, { label: name, color: fill }])
+  )
+
+  if (totalAnswers === 0) {
+    return (
+      <Card className="flex flex-col items-center justify-center p-6">
+        <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+        <CardTitle className="text-center mb-2">{category}</CardTitle>
+        <p className="text-muted-foreground text-center">Nenhuma questão respondida nesta categoria</p>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="flex flex-col pb-3">
+      <CardHeader className="items-center pb-2">
+        <CardTitle>{category}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-1 pb-0">
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square max-h-[250px]"
+        >
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Pie
+              data={answerCounts}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={5}
+              strokeWidth={5}
+            >
+              {answerCounts.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+              <Label
+                content={({ viewBox }) => {
+                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                    return (
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                      >
+                        <tspan
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          className="fill-foreground text-3xl font-bold"
+                        >
+                          {totalAnswers}
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 24}
+                          className="fill-muted-foreground"
+                        >
+                          Respondidas
+                        </tspan>
+                      </text>
+                    )
+                  }
+                }}
+              />
+            </Pie>
+            <ChartLegend
+              content={<ChartLegendContent nameKey="name" />}
+              className="flex flex-wrap justify-center gap-2 mt-4"
+            />
+          </PieChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  )
+}
+
+const CategoryAccordion = ({ category, categoryData, section }: { category: string, categoryData: Record<string, string>, section: QuestionSection }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="mb-4">
+      <Button
+        variant="ghost"
+        className="w-full justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="font-semibold">{category}</span>
+        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </Button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="mt-2 space-y-2">
+              {Object.entries(categoryData).map(([questionKey, answer]) => {
+                const [_, index] = questionKey.split('-')
+                const question = questions[section][category as QuestionCategory][parseInt(index)]
+                return (
+                  <Card key={questionKey} className="p-4">
+                    <p className="text-sm text-muted-foreground mb-2">{question}</p>
+                    <Badge
+                      variant={answer ? "default" : "secondary"}
+                      className="text-xs py-0.5 px-2"
+                    >
+                      {answer || 'Não respondida'}
+                    </Badge>
+                  </Card>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+const renderQuestionResponses = (section: QuestionSection, formData: ProcessedFormData) => {
+  const sectionData = formData[section]
+  if (!sectionData) return null
+
+  const hasAnswers = Object.values(sectionData).some(categoryData =>
+    Object.values(categoryData).some(answer => answer)
+  )
+
+  if (!hasAnswers) {
+    return (
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Respostas Detalhadas</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center p-6">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground text-center">Nenhuma questão respondida nesta seção</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle>Respostas Detalhadas</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[400px] w-full pr-4">
+          {Object.entries(sectionData).map(([category, categoryData]) => (
+            <CategoryAccordion key={category} category={category} categoryData={categoryData} section={section} />
+          ))}
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default function Component() {
   const [isLoading, setIsLoading] = useState(true)
   const [formData, setFormData] = useState<ProcessedFormData>({} as ProcessedFormData)
   const [categoryScores, setCategoryScores] = useState<Record<QuestionSection, Record<QuestionCategory, CategoryScore>>>({} as Record<QuestionSection, Record<QuestionCategory, CategoryScore>>)
@@ -165,165 +377,6 @@ export default function ResultsPage() {
     clearFormData()
   }
 
-  const renderCategoryChart = (section: QuestionSection, category: QuestionCategory) => {
-    const categoryData = categoryScores[section]?.[category]
-    if (!categoryData) {
-      return null
-    }
-
-    const { score } = categoryData
-
-    const answerCounts = countAnswers(formData[section]?.[category] || {})
-    const totalAnswers = answerCounts.reduce((acc, curr) => acc + curr.value, 0)
-
-    const chartConfig = Object.fromEntries(
-      answerCounts.map(({ name, fill }) => [name, { label: name, color: fill }])
-    )
-
-    if (totalAnswers === 0) {
-      return (
-        <Card className="flex flex-col items-center justify-center p-6">
-          <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground text-center">Nenhuma questão respondida nesta categoria</p>
-        </Card>
-      )
-    }
-
-    return (
-      <Card className="flex flex-col">
-        <CardHeader className="items-center pb-0">
-          <CardTitle>{category}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex-1 pb-0">
-          <ChartContainer
-            config={chartConfig}
-            className="mx-auto aspect-square max-h-[250px]"
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie
-                data={answerCounts}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
-                strokeWidth={5}
-              >
-                {answerCounts.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
-                <Label
-                  content={({ viewBox }) => {
-                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                      return (
-                        <text
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                        >
-                          <tspan
-                            x={viewBox.cx}
-                            y={viewBox.cy}
-                            className="fill-foreground text-3xl font-bold"
-                          >
-                            {totalAnswers}
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 24}
-                            className="fill-muted-foreground"
-                          >
-                            Respondidas
-                          </tspan>
-                        </text>
-                      )
-                    }
-                  }}
-                />
-              </Pie>
-              <ChartLegend
-                content={<ChartLegendContent nameKey="name" />}
-                className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-              />
-            </PieChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const renderSectionSummary = (section: QuestionSection) => {
-    const sectionScore = sectionScores[section]
-    if (!sectionScore) {
-      return null
-    }
-
-    const { score, percentageAnswered, medal } = sectionScore
-
-    return (
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 mb-2 sm:mb-0">
-                <div className="bg-primary text-primary-foreground rounded-full p-2">
-                  {medal.icon}
-                </div>
-                <span className="font-bold text-xl sm:text-2xl">{medal.type}</span>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {`${percentageAnswered.toFixed(1)}% das questões respondidas`}
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Progress value={score} className="flex-grow" />
-              <div className="text-2xl sm:text-3xl font-semibold bg-primary text-primary-foreground px-3 py-1 rounded">
-                {score}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const renderQuestionResponses = (section: QuestionSection) => {
-    const sectionData = formData[section]
-    if (!sectionData) return null
-
-    return (
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Respostas Detalhadas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[300px] w-full">
-            {Object.entries(sectionData).map(([category, categoryData]) => (
-              <div key={category} className="mb-4">
-                <h4 className="font-semibold mb-2">{category}</h4>
-                {Object.entries(categoryData).map(([questionKey, answer]) => {
-                  const [_, index] = questionKey.split('-')
-                  const question = questions[section][category as QuestionCategory][parseInt(index)]
-                  return (
-                    <div key={questionKey} className="mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-sm text-muted-foreground mb-1 sm:mb-0 sm:mr-2">{question}</p>
-                      <Badge variant="secondary" className="self-start sm:self-center">{answer}</Badge>
-                    </div>
-                  )
-                })}
-              </div>
-            ))}
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <div className="container mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
       <HomeButton />
@@ -335,7 +388,6 @@ export default function ResultsPage() {
           <Skeleton className="h-4 w-4/5" />
         </div>
       ) : (
-
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -365,8 +417,8 @@ export default function ResultsPage() {
                             <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
                             <span className="truncate flex-grow">{section}</span>
                             {sectionScore && (
-                              <div className="flex items-center ml-2 text-primary">
-                                <Trophy className="h-3 w-3 mr-1" />
+                              <div className="flex items-center ml-2">
+                                <Trophy className="h-3 w-3 mr-1" style={{ color: sectionScore.medal.color }} />
                                 <span className="text-xs font-semibold">{sectionScore.score}</span>
                               </div>
                             )}
@@ -380,7 +432,7 @@ export default function ResultsPage() {
                       onClick={handleDownload}
                       className="w-full py-2 text-sm"
                     >
-                      Download Resultados (JSON)
+                      Download (JSON)
                     </Button>
                   </div>
                 </aside>
@@ -392,12 +444,12 @@ export default function ResultsPage() {
                         <p className="text-sm text-muted-foreground mt-1">{sectionDescriptions[activeSection]}</p>
                         <Separator className="mt-4" />
                       </div>
-                      {renderSectionSummary(activeSection)}
+                      {renderSectionSummary(activeSection, sectionScores)}
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {renderCategoryChart(activeSection, 'Existência e Qualidade da Informação')}
-                        {renderCategoryChart(activeSection, 'Formato de Apresentação')}
+                        {renderCategoryChart(activeSection, 'Existência e Qualidade da Informação', formData, categoryScores)}
+                        {renderCategoryChart(activeSection, 'Formato de Apresentação', formData, categoryScores)}
                       </div>
-                      {renderQuestionResponses(activeSection)}
+                      {renderQuestionResponses(activeSection, formData)}
                     </div>
                   </ScrollArea>
                 </div>

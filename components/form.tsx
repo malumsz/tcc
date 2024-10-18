@@ -19,6 +19,17 @@ import { useRouter } from 'next/navigation'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { questions, sectionDescriptions, QuestionCategory, QuestionSection } from '@/components/util/questions'
 import { saveFormData, getFormData } from '@/components/util/formStorage'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const sectionIcons: Record<QuestionSection, LucideIcon> = {
   'Pessoas/Atores': Users,
@@ -111,6 +122,13 @@ export default function FormularioInspecao() {
     return answeredQuestions.length === categoryQuestions.length;
   }
 
+  const [open, setOpen] = useState(false)
+
+  const handleConfirm = () => {
+    setOpen(false)
+    router.push('/')
+  }
+
   return (
     <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -160,12 +178,27 @@ export default function FormularioInspecao() {
                   <p className="text-sm text-muted-foreground text-center">
                     {Math.round(totalProgress)}% concluído
                   </p>
-                  <Button
-                    onClick={handleCalculate}
-                    className="w-full py-2 text-sm"
-                  >
-                    Calcular
-                  </Button>
+                  <AlertDialog open={open} onOpenChange={setOpen}>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        className="w-full py-2 text-sm"
+                      >
+                        Calcular
+                      </Button>
+                    </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Prosseguir?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Preencha todas as respostas para garantir um resultado mais preciso. Caso algum campo esteja vazio, o cálculo pode não refletir a análise completa.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleCalculate}>Calcular</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                 </div>
               </aside>
               <div className="flex-1 lg:max-w-4xl">
