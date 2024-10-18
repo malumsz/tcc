@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { downloadFormData, clearFormData, getFormData } from '@/components/util/formStorage'
 import { questions, QuestionSection, QuestionCategory, sectionDescriptions } from '@/components/util/questions'
 import HomeButton from '@/components/home-button'
@@ -188,8 +189,8 @@ const renderCategoryChart = (section: QuestionSection, category: QuestionCategor
   }
 
   return (
-    <Card className="flex flex-col pb-3">
-      <CardHeader className="items-center pb-2">
+    <Card className="flex flex-col">
+      <CardHeader className="items-center pb-0">
         <CardTitle>{category}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
@@ -255,51 +256,6 @@ const renderCategoryChart = (section: QuestionSection, category: QuestionCategor
   )
 }
 
-const CategoryAccordion = ({ category, categoryData, section }: { category: string, categoryData: Record<string, string>, section: QuestionSection }) => {
-  const [isOpen, setIsOpen] = useState(false)
-
-  return (
-    <div className="mb-4">
-      <Button
-        variant="ghost"
-        className="w-full justify-between"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span className="font-semibold">{category}</span>
-        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-      </Button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="mt-2 space-y-2">
-              {Object.entries(categoryData).map(([questionKey, answer]) => {
-                const [_, index] = questionKey.split('-')
-                const question = questions[section][category as QuestionCategory][parseInt(index)]
-                return (
-                  <Card key={questionKey} className="p-4">
-                    <p className="text-sm text-muted-foreground mb-2">{question}</p>
-                    <Badge
-                      variant={answer ? "default" : "secondary"}
-                      className="text-xs py-0.5 px-2"
-                    >
-                      {answer || 'Não respondida'}
-                    </Badge>
-                  </Card>
-                )
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
 const renderQuestionResponses = (section: QuestionSection, formData: ProcessedFormData) => {
   const sectionData = formData[section]
   if (!sectionData) return null
@@ -328,11 +284,51 @@ const renderQuestionResponses = (section: QuestionSection, formData: ProcessedFo
         <CardTitle>Respostas Detalhadas</CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[400px] w-full pr-4">
+        <Tabs defaultValue={Object.keys(sectionData)[0]}>
+          <TabsList className="grid w-full grid-cols-2">
+            {Object.keys(sectionData).map((category) => (
+              <TabsTrigger key={category} value={category}>
+                {category}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           {Object.entries(sectionData).map(([category, categoryData]) => (
-            <CategoryAccordion key={category} category={category} categoryData={categoryData} section={section} />
+            <TabsContent key={category} value={category}>
+              <ScrollArea className="h-[400px] w-full">
+                <div className="space-y-4 pr-4">
+                  {Object.entries(categoryData).map(([questionKey, answer]) => {
+                    const [_, index] = questionKey.split('-')
+                    const question = questions[section][category as QuestionCategory][parseInt(index)]
+                    return (
+                      <motion.div
+                        key={questionKey}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex flex-col space-y-2">
+                              <p className="text-sm text-muted-foreground">{question}</p>
+                              <div className="flex justify-center">
+                                <Badge
+                                  variant={answer ? "default" : "secondary"}
+                                  className="text-xs py-0.5 px-2"
+                                >
+                                  {answer || 'Não respondida'}
+                                </Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              </ScrollArea>
+            </TabsContent>
           ))}
-        </ScrollArea>
+        </Tabs>
       </CardContent>
     </Card>
   )
@@ -349,6 +345,7 @@ export default function Component() {
     const timer = setTimeout(() => {
       const { formData: rawFormData } = getFormData()
       const processedData = processFormData(rawFormData)
+
       setFormData(processedData)
 
       const scores: Record<QuestionSection, Record<QuestionCategory, CategoryScore>> = {} as Record<QuestionSection, Record<QuestionCategory, CategoryScore>>
@@ -436,7 +433,7 @@ export default function Component() {
                     </Button>
                   </div>
                 </aside>
-                <div className="flex-1">
+                <div className="flex-1 overflow-hidden">
                   <ScrollArea className="h-[calc(100vh-16rem)] pr-4 sm:pr-6">
                     <div className="space-y-6">
                       <div className="sticky top-0 bg-background z-10 py-4">
