@@ -12,11 +12,23 @@ import { Badge } from "@/components/ui/badge"
 import { downloadFormData, clearFormData, getFormData } from '@/components/util/formStorage'
 import { questions, QuestionSection, QuestionCategory, sectionDescriptions } from '@/components/util/questions'
 import HomeButton from '@/components/home-button'
+import FormButton from '@/components/form-button'
 import { PieChart, Pie, Cell, ResponsiveContainer, Label, Legend } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
-import { Trophy, AlertCircle, Users, MousePointerSquare, Database, Share2, ShieldCheck, CheckCircle2, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react'
+import { Trophy, AlertCircle, Users, MousePointerSquare, Database, Share2, ShieldCheck, CheckCircle2, LucideIcon, ChevronDown, ChevronUp, Download } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import Link from 'next/link'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface Medal {
   type: string;
@@ -423,17 +435,12 @@ export default function Component() {
                   <div className="mt-4 space-y-4">
                     <Button
                       onClick={handleDownload}
-                      className="w-full py-2 text-sm mb-3"
+                      className="w-full py-2 text-sm"
                     >
+                      <Download className="mr-2 h-4 w-4" />
                       Download (JSON)
                     </Button>
-                    <Link href="/form-page" passHref>
-                      <Button
-                        size="lg" variant="outline" className="w-full group hover:bg-secondary/10"
-                      >
-                        Realizar outra inspeção
-                      </Button>
-                    </Link>
+                    <FormButton/>
                   </div>
                 </div>
                 <div className="flex-1">

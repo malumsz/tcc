@@ -41,9 +41,9 @@ export function VisaoGeral() {
               </h3>
               <ul className="space-y-3">
                 {[
-                  { icon: CheckCircle2, text: "Preenchimento do formulário de inspeção em escalas de <u>Suficiente</u>, <u>Insuficiente</u> e <u>Inexistente</u>." },
-                  { icon: BarChartBig, text: "Cálculo de um <b>score</b> final com base nas respostas, acompanhado de gráficos visuais." },
-                  { icon: FileText, text: "Exportação do resultado em formato <b>JSON</b> ao final da inspeção." },
+                  { icon: CheckCircle2, text: "Preenchimento do formulário de inspeção dividido em seções com escalas de <u>Suficiente</u>, <u>Insuficiente</u>, <u>Inexistente</u>, etc." },
+                  { icon: BarChartBig, text: "Cálculo de um <b>score</b> final de cada seção com base nas respostas, acompanhado de gráficos visuais." },
+                  { icon: FileText, text: "Exportação das respostas em formato <b>JSON</b> ao final da inspeção." },
                   { icon: Sun, text: "<b>Modo claro</b>/<b>escuro</b> para melhor adaptação visual com base na preferência do usuário." },
                 ].map((item, index) => (
                   <li key={index} className="flex items-start">
@@ -54,7 +54,7 @@ export function VisaoGeral() {
               </ul>
             </div>
             <p className="leading-relaxed">
-              Esta ferramenta visa capacitar os usuários a tomar decisões mais informadas sobre sua privacidade e auxiliar desenvolvedores na criação de software em conformidade com legislações como GDPR e LGPD.
+              Esta ferramenta visa capacitar os usuários a tomar decisões mais informadas sobre sua privacidade e auxiliar desenvolvedores na criação de software em conformidade com legislações como <b>GDPR</b> e <b>LGPD</b>.
             </p>
           </div>
         </ScrollArea>
