@@ -19,9 +19,9 @@
   
   
   <h4>
-      <a href="https://privacy-tool.vercel.app">Demo</a>
+      <a href="https://privacy-tool.vercel.app" target="_blank">Demo</a>
       <span> · </span>
-      <a href="">Documentação</a>
+      <a href="Documentation.pdf">Documentação</a>
       <span> · </span>
       <a href="https://forms.gle/D49q345ssS2qginA8">Feedback</a>
     </h4>
