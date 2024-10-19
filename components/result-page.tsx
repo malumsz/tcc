@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { downloadFormData, clearFormData, getFormData } from '@/components/util/formStorage'
 import { questions, QuestionSection, QuestionCategory, sectionDescriptions } from '@/components/util/questions'
 import HomeButton from '@/components/home-button'
@@ -282,33 +281,45 @@ const renderQuestionResponses = (section: QuestionSection, formData: ProcessedFo
 
   return (
     <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="mb-3">Respostas Detalhadas</CardTitle>
-          <Separator className="my-4" />
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[300px] w-full pr-4">
-            {Object.entries(sectionData).map(([category, categoryData]) => (
-              <div key={category} className="mb-4">
-                <h4 className="font-semibold mb-2">{category}</h4>
-                <Separator className="my-4" />
-                {Object.entries(categoryData).map(([questionKey, answer]) => {
-                  const [_, index] = questionKey.split('-')
-                  const question = questions[section][category as QuestionCategory][parseInt(index)]
-                  return (
-                    <div key={questionKey} className="mb-2 flex flex-wrap items-start">
-                      <p className="text-sm text-muted-foreground flex-grow mr-2">{question}</p>
-                      <Badge variant="secondary" className="mt-1 whitespace-normal text-right">
-                        {answer || 'Não respondida'}
-                      </Badge>
-                    </div>
-                  )
-                })}
+      <CardHeader>
+        <CardTitle className="mb-3">Respostas Detalhadas</CardTitle>
+        <Separator className="my-4" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {Object.entries(sectionData).map(([category, categoryData], index) => {
+            const hasAnswersInCategory = Object.values(categoryData).some(answer => answer)
+            return (
+              <div key={category} className="bg-secondary/10 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold mb-4">{category}</h4>
+                {hasAnswersInCategory ? (
+                  <div className="grid gap-4">
+                    {Object.entries(categoryData).map(([questionKey, answer]) => {
+                      if (!answer) return null
+                      const [_, index] = questionKey.split('-')
+                      const question = questions[section][category as QuestionCategory][parseInt(index)]
+                      return (
+                        <div key={questionKey} className="bg-background p-4 rounded-lg shadow-sm">
+                          <p className="text-sm font-medium mb-2">{question}</p>
+                          <Badge variant="secondary" className="mt-1 text-sm">
+                            {answer}
+                          </Badge>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-6 bg-background rounded-lg">
+                    <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-muted-foreground text-center text-sm">Nenhuma questão respondida nesta categoria</p>
+                  </div>
+                )}
               </div>
-            ))}
-          </ScrollArea>
-        </CardContent>
-      </Card>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
