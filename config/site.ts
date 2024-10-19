@@ -15,7 +15,7 @@ export const siteConfig = {
     },
   ],
   links: {
-    twitter: "https://twitter.com/shadcn",
+    twitter: "https://github.com/malumsz/tcc/blob/main/Documentation.pdf",
     github: "https://github.com/malumsz/tcc",
     docs: "https://ui.shadcn.com",
   },

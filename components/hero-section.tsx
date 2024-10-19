@@ -84,7 +84,7 @@ export function HeroSectionComponent() {
                     Repositório
                   </Button>
                 </Link>
-                <Link href="" target="_blank">
+                <Link href="https://github.com/malumsz/tcc/blob/main/Documentation.pdf" target="_blank">
                   <Button variant="ghost" size="sm" className="hover:bg-primary/10">
                     <Book className="mr-2 h-4 w-4" />
                     Documentação
