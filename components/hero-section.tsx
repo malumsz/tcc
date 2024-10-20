@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { clearFormData } from '@/components/util/formStorage'
 import { Shield, Github, Book, ArrowRight, Layers, Scale, Sticker } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
@@ -63,7 +64,7 @@ export function HeroSectionComponent() {
                 className="flex flex-col sm:flex-row gap-4"
               >
                 <Link href="/form-page">
-                  <Button size="lg" className="w-full group bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Button onClick={clearFormData} size="lg" className="w-full group bg-primary hover:bg-primary/90 text-primary-foreground">
                     Inspeção
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>

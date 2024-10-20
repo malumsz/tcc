@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { NavItem } from "@/types/nav";
+import { clearFormData } from '@/components/util/formStorage'
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
@@ -27,6 +28,7 @@ export function MainNav({ items }: MainNavProps) {
             (item, index) =>
               item.href && (
                 <Link
+                  onClick={clearFormData}
                   key={index}
                   href={item.href}
                   className={cn(
