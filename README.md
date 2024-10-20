@@ -54,13 +54,28 @@
 
 <img src="https://i.imgur.com/FbiVhpC.png" alt="Screenshot">
 
+<img src="https://i.imgur.com/fJGl2xF.png" alt="Screenshot">
 
+<img src="https://i.imgur.com/WI1gVmo.png" alt="Screenshot">
+
+#
+
+Este projeto aborda a carência de ferramentas práticas e acessíveis para avaliar a transparência das práticas de manipulação de dados pessoais. O objetivo é propor uma ferramenta para inspeção de Transparência de Dados Pessoais em aplicações de software construída com base na [Lei Geral de Proteção de Dados (LGPD)](https://www.gov.br/esporte/pt-br/acesso-a-informacao/lgpd) e no [TR-Model](https://each.usp.br/cond_met_pand/trmodel/).
+
+#### Funcionalidades:
+* Preenchimento do formulário de inspeção dividido em seções com escalas de `Suficiente`, `Insuficiente`, `Inexistente`, etc.
+* Cálculo de um ***score*** final de cada seção com base nas respostas, acompanhado de gráficos visuais.
+* Exportação das respostas em formato `JSON` ao final da inspeção.
+* Modo claro/escuro para melhor adaptação visual com base na preferência do usuário.
+  
+Esta ferramenta visa capacitar os usuários a tomar decisões mais informadas sobre sua privacidade e auxiliar desenvolvedores na criação de software em conformidade com legislações como **GDPR** e **LGPD**.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
 ### Construção
+
 
 [![My Skills](https://skillicons.dev/icons?i=nextjs,react,ts,html,css,tailwind,vercel,nodejs)](https://skillicons.dev)
 
