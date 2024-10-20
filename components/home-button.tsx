@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { clearFormData } from '@/components/util/formStorage'
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
 import {
@@ -21,6 +22,7 @@ export default function HomeButton() {
   const [open, setOpen] = useState(false)
 
   const handleConfirm = () => {
+    clearFormData()
     setOpen(false)
     router.push('/')
   }
