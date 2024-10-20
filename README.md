@@ -10,7 +10,7 @@
   </a>
 
 [![/](https://img.shields.io/badge/PRIVACY-TOOL-black.svg?logo=&logoColor=f5f5f5&style=for-the-badge)]()
-#
+
 
   <p align="center">
     Uma ferramenta para <b>Inspeção de Transparência de Dados Pessoais</b> em aplicações de <i>software</i>.
@@ -29,7 +29,7 @@
   </p>
 </div>
 
-
+#
 
 <!-- TABLE OF CONTENTS -->
 <details>
