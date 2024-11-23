@@ -5,7 +5,7 @@
 <!-- PROJECT LOGO -->
 
 <div align="center">
-  <a href="https://github.com/github_username/repo_name">
+  <a href="https://github.com/malumsz/tcc">
     <img src="https://i.imgur.com/kxMxQ7D.png" alt="Logo" width="200" height="auto">
   </a>
 
@@ -25,7 +25,6 @@
       <span> · </span>
       <a href="https://forms.gle/D49q345ssS2qginA8">Feedback</a>
     </h4>
-    
   </p>
 </div>
 
@@ -67,7 +66,7 @@ Este projeto aborda a carência de ferramentas práticas e acessíveis para aval
 * Preenchimento do formulário de inspeção dividido em seções com escalas de `Suficiente`, `Insuficiente`, `Inexistente`, etc.
 * Cálculo de um ***score*** final de cada seção com base nas respostas, acompanhado de gráficos visuais.
 * Exportação das respostas em formato `JSON` ao final da inspeção.
-* Modo claro/escuro para melhor adaptação visual com base na preferência do usuário.
+* Modo **claro/escuro** para melhor adaptação visual com base na preferência do usuário.
   
 Esta ferramenta visa capacitar os usuários a tomar decisões mais informadas sobre sua privacidade e auxiliar desenvolvedores na criação de software em conformidade com legislações como **GDPR** e **LGPD**.
 
@@ -77,7 +76,7 @@ Esta ferramenta visa capacitar os usuários a tomar decisões mais informadas so
 
 ### 🛠 Construção
 #
-Para a construção da ferramenta de Inspeção de Transparência de Dados, foram utilizados, além de `HTML` e `CSS` para a criação da interface web, `TypeScript`, `React` e a biblioteca [`shadcn/ui`](https://ui.shadcn.com) como as tecnologias principais de ***front-end***, visto sua ampla compatibilidade. Já no ***back-end***, juntamente com os ambientes anteriores, foram utilizados `Node.js` e `Next.js` para gerência de operações de manipulação de dados.
+Para a construção da ferramenta de **Inspeção de Transparência de Dados**, foram utilizados, além de `HTML` e `CSS` para a criação da interface web, `TypeScript`, `React` e a biblioteca [`shadcn/ui`](https://ui.shadcn.com) como as tecnologias principais de ***front-end***, visto sua ampla compatibilidade. Já no ***back-end***, juntamente com os ambientes anteriores, foram utilizados `Node.js` e `Next.js` para gerência de operações de manipulação de dados.
 
 [![My Skills](https://skillicons.dev/icons?i=nextjs,react,ts,html,css,tailwind,vercel,nodejs)](https://skillicons.dev)
 
@@ -91,12 +90,16 @@ Para a construção da ferramenta de Inspeção de Transparência de Dados, fora
 
 A ferramenta consiste no preenchimento de um formulário dividido em seções baseadas no modelo **TR-Model**: `Pessoas/Atores`, `Propósito de uso`, `Dados pessoais`, `Compartilhamento` e `Agenciamento`. Cada uma delas com subseções `Existência e Qualidade da Informação` e `Formato de Apresentação`.
 
+Ao realizar uma análise da apresentação das informações relacionadas a transparência de dados pessoais presentes em um *website* ou *software* de escolha do usuário, o mesmo pode responder as questões presentes no formulário da ferramenta de acordo com as informações que ele encontra ou não nesse ambiente, relacionadas a como seus dados pessoais serão manipulados e utilizados por esse *website* ou *software*.
+
 As opções de resposta variam de acordo com a subseção. O usuário terá liberdade para preencher todas as respostas possíveis para garantir um resultado mais preciso, porém caso algum campo seja deixado vazio, o cálculo pode não refletir a análise completa.
 
 Ao final da inspeção será mostrado ao usuário uma página que apresenta um resumo detalhado dos resultados acompanhado de gráficos visuais, juntamente com o cálculo de um *score* baseado em suas respostas, com a atribuição de um troféu para cada intervalo de pontuação. Diferentes seções podem ser exploradas para obter *insights* sobre cada aspecto avaliado.
 
+Esse resultado reflete ao usuário a pontuação atribuída ao *website* ou *software* em relação ao quão "transparente" as informações sobre como os dados do usuário serão manipulados e utilizados são apresentadas ao mesmo, assim como a facilidade de serem localizadas.
+
 > [!NOTE]
-> Você pode utilizar a ferramenta acessando o *link* abaixo:
+> A ferramenta pode ser utilizada acessando o *link* abaixo:
 
 <a href="https://privacy-tool.vercel.app"><img src="https://i.imgur.com/BCr3Bs5.png" alt="link" width="150" height="auto"></a>
 
