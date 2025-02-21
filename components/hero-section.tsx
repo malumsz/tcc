@@ -79,12 +79,12 @@ export function HeroSectionComponent() {
                 transition={{ delay: 0.6, duration: 0.5 }}
                 className="flex gap-4"
               >
-                <Link href="https://github.com/malumsz/tcc" target="_blank">
+                {/*<Link href="https://github.com/malumsz/tcc" target="_blank">
                   <Button variant="ghost" size="sm" className="hover:bg-primary/10">
                     <Github className="mr-2 h-4 w-4" />
                     Repositório
                   </Button>
-                </Link>
+                </Link> ##botao repositorio card principal## */}
                 <Link href="https://github.com/malumsz/tcc/blob/main/Documentation.pdf" target="_blank">
                   <Button variant="ghost" size="sm" className="hover:bg-primary/10">
                     <Book className="mr-2 h-4 w-4" />

@@ -45,9 +45,9 @@ export function Footer() {
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-4"
           >
-            shadcn/ui
+            shadcn/ui.
           </a>{" "}
-          por malu moreira.
+          {/*por malu moreira.*/}
         </p>
       </div>
     </footer>
