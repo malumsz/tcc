@@ -13,7 +13,7 @@
 
 
   <p align="center">
-    Uma ferramenta para <b>Inspeção de Transparência de Dados Pessoais</b> em aplicações de <i>software</i>.
+    Uma ferramenta para <b>Inspeção de Transparência de Dados Pessoais</b> em aplicações de <i>software</i>. Desenvolvida para Trabalho de Conclusão de Curso.
     <br/>
     
   
